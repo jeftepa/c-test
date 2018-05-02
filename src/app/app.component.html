@@ -1,8 +1,26 @@
-<!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Welcome!
-  </h1>
-</div>
 <div id="candle-chart"></div>
 <div id="stoch-chart"></div>
+
+<div>
+  <div class="input-field">
+    <input [(ngModel)]="period" name="period" type="number">
+    <label for="period">period</label>
+  </div>
+  <div class="input-field">
+    <input [(ngModel)]="signalPeriod" name="signalPeriod" type="number">
+    <label for="signalPeriod">signalPeriod</label>
+  </div>
+  <div class="input-field">
+    <input [(ngModel)]="symbol" name="symbol" type="text">
+    <label for="symbol">symbol</label>
+  </div>
+  <div class="input-field">
+    <button (click)="onRefresh()">Refresh</button>
+  </div>
+</div>
+
+
+
+
+
+

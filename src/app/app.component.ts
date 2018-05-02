@@ -23,25 +23,39 @@ export class AppComponent {
   private strategy: StochasticStrategy;
   private binance = Binance();
   private candles: IMyCandle[] = [];
+  private webSocket: Function;
 
-  private PERIOD = 10;
-  private SIGNAL_PERIOD = 4;
+  public symbol = 'EOSETH';
+  public period = 50;
+  public signalPeriod = 10;
 
   constructor(private strategyService: StrategiesService) {
     this.strategy = this.strategyService.getStochasticStrategy();
+
+    // const exchangeInfo = await this.binance.exchangeInfo();
+    // exchangeInfo.symbols;
   }
 
   public async ngOnInit(): Promise<void> {
-    this.candles = await this.binance.candles({ symbol: 'EOSETH', interval: '1m', limit: 100 });
+    this.runLive();
+    // await this.runHistoricAnalysis(this.symbol, '1m', 100);
+  }
+
+  public onRefresh(): void {
+    this.webSocket();
+    this.runLive();
+  }
+
+  private async runLive(): Promise<void> {
+    this.candles = await this.binance.candles({ symbol: this.symbol, interval: '1m', limit: 100 });
     this.runAnalysis();
     
-    this.binance.ws.candles('EOSETH', '1m', candle => {
+    this.webSocket = this.binance.ws.candles(this.symbol, '1m', candle => {
       if (candle.isFinal) {
         this.candles.push(candle);
         this.runAnalysis();
       }
     });
-    // await this.runHistoricAnalysis('EOSETH', '1m', 100);
   }
 
   private runAnalysis(): void {
@@ -54,8 +68,8 @@ export class AppComponent {
       low: low,
       high: high,
       close: close,
-      period: this.PERIOD,
-      signalPeriod: this.SIGNAL_PERIOD
+      period: this.period,
+      signalPeriod: this.signalPeriod
     });
 
     const k = this.fillArray<number>(_.pluck(stoch, 'k'), this.candles.length);
@@ -88,8 +102,8 @@ export class AppComponent {
       low: low,
       high: high,
       close: close,
-      period: this.PERIOD,
-      signalPeriod: this.SIGNAL_PERIOD
+      period: this.period,
+      signalPeriod: this.signalPeriod
     });
 
     const k = this.fillArray<number>(_.pluck(stoch, 'k'), low.length);
