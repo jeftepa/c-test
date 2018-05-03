@@ -20,30 +20,31 @@ interface IMyCandle {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  private strategy: StochasticStrategy;
+  private strategy: Strategies.Strategy;
   private binance = Binance();
   private candles: IMyCandle[] = [];
   private webSocket: Function;
 
   public symbol = 'EOSETH';
-  public period = 50;
-  public signalPeriod = 10;
+  public period = 12;
+  public signalPeriod = 5;
 
   constructor(private strategyService: StrategiesService) {
-    this.strategy = this.strategyService.getStochasticStrategy();
+    this.strategy = this.strategyService.getStochasticSegmentsStrategy();
 
     // const exchangeInfo = await this.binance.exchangeInfo();
     // exchangeInfo.symbols;
   }
 
   public async ngOnInit(): Promise<void> {
-    this.runLive();
-    // await this.runHistoricAnalysis(this.symbol, '1m', 100);
+    // this.runLive();
+    await this.runHistoricAnalysis(this.symbol, '1m', 100);
   }
 
-  public onRefresh(): void {
-    this.webSocket();
-    this.runLive();
+  public async onRefresh(): Promise<void> {
+    // this.webSocket();
+    // this.runLive();
+    await this.runHistoricAnalysis(this.symbol, '1m', 100);
   }
 
   private async runLive(): Promise<void> {
@@ -75,7 +76,12 @@ export class AppComponent {
     const k = this.fillArray<number>(_.pluck(stoch, 'k'), this.candles.length);
     const d = this.fillArray<number>(_.pluck(stoch, 'd'), this.candles.length);
 
-    const advice = this.strategy.getTradeAdvice(k[k.length - 1], d[d.length - 1]);
+    const params: Strategies.IGetTradeAdvice = {
+      k: k[k.length - 1],
+      d: d[d.length - 1]
+    }
+
+    const advice = this.strategy.getTradeAdvice(params);
     console.log('i: ' + (k.length - 1));
     console.log('k: ' + k[k.length - 1]);
     console.log('d: ' + d[d.length -1]);
@@ -92,10 +98,10 @@ export class AppComponent {
   }
   
   private async runHistoricAnalysis(symbol: string, interval: CandleChartInterval, limit: number): Promise<void> {
-    const hCandles = await this.binance.candles({ symbol: symbol, interval: interval, limit: limit });
-    const high: number[] = _.pluck(hCandles, 'high');
-    const low: number[] = _.pluck(hCandles, 'low');
-    const close: number[] = _.pluck(hCandles, 'close');
+    this.candles = await this.binance.candles({ symbol: symbol, interval: interval, limit: limit });
+    const high: number[] = _.pluck(this.candles, 'high');
+    const low: number[] = _.pluck(this.candles, 'low');
+    const close: number[] = _.pluck(this.candles, 'close');
     const range = _.range(low.length);
 
     const stoch = stochastic({
@@ -109,8 +115,39 @@ export class AppComponent {
     const k = this.fillArray<number>(_.pluck(stoch, 'k'), low.length);
     const d = this.fillArray<number>(_.pluck(stoch, 'd'), low.length);
 
-    this.plotCandleChart(low, high, close, range);
+    const params: Strategies.IGetTradeAdvice[] = this.unPluck(k, d, 'k', 'd');
+
+    const adviceBatch = this.strategy.getTradeAdviceBatch(params);
+
+    this.setAdvice(adviceBatch, close);
+
+    const buy = this.fillArray<number>(_.pluck(this.candles, 'buy'), this.candles.length);
+    const sell = this.fillArray<number>(_.pluck(this.candles, 'sell'), this.candles.length);
+
+    this.plotCandleChart(low, high, close, range, buy, sell);
     this.plotStochChart(k, d, range);
+  }
+
+  private setAdvice(adviceBatch: Strategies.advice[], close: number[]): void {
+    _.each(adviceBatch, (advice, i) => {
+      this.candles[i].buy = advice === 'buy' ? close[i] : undefined;
+      this.candles[i].sell = advice === 'sell' ? close[i] : undefined;
+    });
+  }
+
+  private unPluck(value1: number[], value2: number[], key1: string, key2: string): Strategies.IGetTradeAdvice[] {
+    const value: Strategies.IGetTradeAdvice[] = [];
+
+    let i = 0;
+    while(i < value1.length) {
+      value.push({
+        [key1]: value1[i],
+        [key2]: value2[i]
+      });
+      i++;
+    }
+
+    return value;
   }
 
   private fillArray<T>(original: T[], requiredLength): T[] {

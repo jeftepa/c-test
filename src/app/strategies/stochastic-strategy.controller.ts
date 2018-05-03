@@ -1,19 +1,19 @@
-type advice = 'buy' | 'sell' | 'none';
+import * as _ from 'underscore';
 
 export class StochasticStrategy {
     private isFirstAdvice = false;
-    private previousAdvice: advice = 'none';
+    private previousAdvice: Strategies.advice = 'none';
 
     constructor() {
     }
 
-    public getTradeAdvice(k: number, d: number): advice {
-        let advice: advice;
+    public getTradeAdvice(params: Strategies.IGetTradeAdvice): Strategies.advice {
+        let advice: Strategies.advice;
 
-        if (k > d) {
+        if (params.k > params.d) {
             advice = this.previousAdvice !== 'buy' ? 'buy' : 'none';
             this.previousAdvice = 'buy';
-        } else if (k < d) {
+        } else if (params.k < params.d) {
             advice = this.previousAdvice !== 'sell' ? 'sell' : 'none';
             this.previousAdvice = 'sell';
         } else {
@@ -26,5 +26,15 @@ export class StochasticStrategy {
         }
 
         return advice;
+    }
+
+    public getTradeAdviceBatch(params: Strategies.IGetTradeAdvice[]): Strategies.advice[] {
+        const adviceBatch: Strategies.advice[] = [];
+
+        _.each(params, (param) => {
+            adviceBatch.push(this.getTradeAdvice(param));
+        });
+
+        return adviceBatch;
     }
 }
