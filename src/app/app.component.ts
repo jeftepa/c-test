@@ -3,8 +3,8 @@ import { StrategiesService } from './strategies/strategies.service';
 import { stochastic } from 'technicalindicators';
 import Binance, { CandlesOptions, CandleChartInterval, Candle, CandleChartResult } from 'binance-api-node';
 import * as _ from 'underscore';
-import * as Plotly from 'plotly.js';
 import { StochasticStrategy } from './strategies/stochastic-strategy.controller';
+import { PlotsService } from './plots/plots.service';
 
 interface IMyCandle {
   low: string;
@@ -28,12 +28,13 @@ export class AppComponent {
   public symbol = 'EOSETH';
   public period = 12;
   public signalPeriod = 5;
-  public selectedStrategy = 'stochastic';
+  public selectedStrategy = 'stochastic-segments';
   public strategies: string[];
 
-  constructor(private strategyService: StrategiesService) {
+  constructor(private strategyService: StrategiesService,
+              private plotsService: PlotsService) {
     this.strategies = this.strategyService.getStrategies();
-    this.strategy = this.strategyService.getStochasticSegmentsStrategy();
+    this.strategy = this.strategyService.getStrategy(this.selectedStrategy);
 
     // const exchangeInfo = await this.binance.exchangeInfo();
     // exchangeInfo.symbols;
@@ -93,10 +94,10 @@ export class AppComponent {
     }
 
     const advice = this.strategy.getTradeAdvice(params);
-    console.log('i: ' + (k.length - 1));
-    console.log('k: ' + k[k.length - 1]);
-    console.log('d: ' + d[d.length -1]);
-    console.log('advice: ' + advice);
+    // console.log('i: ' + (k.length - 1));
+    // console.log('k: ' + k[k.length - 1]);
+    // console.log('d: ' + d[d.length -1]);
+    // console.log('advice: ' + advice);
 
     this.candles[this.candles.length - 1].buy = advice === 'buy' ? close[this.candles.length - 1] : undefined;
     this.candles[this.candles.length - 1].sell = advice === 'sell' ? close[this.candles.length - 1] : undefined;
@@ -104,8 +105,8 @@ export class AppComponent {
     const buy = this.fillArray<number>(_.pluck(this.candles, 'buy'), this.candles.length);
     const sell = this.fillArray<number>(_.pluck(this.candles, 'sell'), this.candles.length);
 
-    this.plotCandleChart(low, high, close, range, buy, sell);
-    this.plotStochChart(k, d, range);
+    this.plotsService.plotCandleChart(low, high, close, range, buy, sell);
+    this.plotsService.plotStochChart(k, d, range);
   }
   
   private async runHistoricAnalysis(symbol: string, interval: CandleChartInterval, limit: number): Promise<void> {
@@ -126,17 +127,15 @@ export class AppComponent {
     const k = this.fillArray<number>(_.pluck(stoch, 'k'), low.length);
     const d = this.fillArray<number>(_.pluck(stoch, 'd'), low.length);
 
-    const params: Strategies.IGetTradeAdvice[] = this.unPluck(k, d, 'k', 'd');
-
+    const params: Strategies.IGetTradeAdvice[] = this.unPluck([k, d], ['k', 'd']);
     const adviceBatch = this.strategy.getTradeAdviceBatch(params);
-
     this.setAdvice(adviceBatch, close);
 
     const buy = this.fillArray<number>(_.pluck(this.candles, 'buy'), this.candles.length);
     const sell = this.fillArray<number>(_.pluck(this.candles, 'sell'), this.candles.length);
 
-    this.plotCandleChart(low, high, close, range, buy, sell);
-    this.plotStochChart(k, d, range);
+    this.plotsService.plotCandleChart(low, high, close, range, buy, sell);
+    this.plotsService.plotStochChart(k, d, range);
   }
 
   private setAdvice(adviceBatch: Strategies.advice[], close: number[]): void {
@@ -146,19 +145,24 @@ export class AppComponent {
     });
   }
 
-  private unPluck(value1: number[], value2: number[], key1: string, key2: string): Strategies.IGetTradeAdvice[] {
-    const value: Strategies.IGetTradeAdvice[] = [];
+  private unPluck(values: number[][], keys: string[]): Strategies.IGetTradeAdvice[] {    
+    const result: Strategies.IGetTradeAdvice[] = [];
 
     let i = 0;
-    while(i < value1.length) {
-      value.push({
-        [key1]: value1[i],
-        [key2]: value2[i]
-      });
-      i++;
-    }
+    while(i < values[0].length) {
+      const test: Strategies.IGetTradeAdvice = {};
 
-    return value;
+      let j = 0;
+      while(j < values.length) {
+        test[keys[j]] = values[j][i];
+        j++;
+      }
+
+      result.push(test);
+      i++;
+    };
+
+    return result;
   }
 
   private fillArray<T>(original: T[], requiredLength): T[] {
@@ -170,60 +174,5 @@ export class AppComponent {
     });
 
     return newData;
-  }
-
-  private plotStochChart(k: number[], d: number[], range: number[]): void {
-    const kTrace = {
-      x: range,
-      y: k,
-      type: <'scatter'>'scatter'
-    };
-    const dTrace = {
-      x: range,
-      y: d,
-      type: <'scatter'>'scatter'
-    };
-
-    const stochData = [kTrace, dTrace];
-    Plotly.newPlot('stoch-chart', stochData);
-  }
-
-  private plotCandleChart(low: number[], high: number[], close: number[], range: number[], buy?: number[], sell?: number[]): void {
-    const buyTrace = {
-      x: range,
-      y: buy,
-      mode: <'markers'>'markers',
-      marker: {
-        color: 'rgb(75, 244, 66)',
-        size: 10
-      }
-    };
-    const sellTrace = {
-      x: range,
-      y: sell,
-      mode: <'markers'>'markers',
-      marker: {
-        color: 'rgb(247, 66, 42)',
-        size: 10
-      }
-    };
-    const lowTrace = {
-      x: range,
-      y: low,
-      type: <'scatter'>'scatter'
-    };
-    const highTrace = {
-      x: range,
-      y: high,
-      type: <'scatter'>'scatter'
-    };
-    const closeTrace = {
-      x: range,
-      y: close,
-      type: <'scatter'>'scatter'
-    };
-
-    const candleData = [lowTrace, highTrace, closeTrace, buyTrace, sellTrace];
-    Plotly.newPlot('candle-chart', candleData);
   }
 }

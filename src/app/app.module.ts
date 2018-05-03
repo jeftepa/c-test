@@ -3,10 +3,12 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 import { AppComponent } from './app.component';
 
 import { StrategiesService } from './strategies/strategies.service';
+import { PlotsService } from './plots/plots.service';
 
 @NgModule({
   declarations: [
@@ -16,10 +18,12 @@ import { StrategiesService } from './strategies/strategies.service';
     BrowserModule,
     FormsModule,
     MatSelectModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    MatSidenavModule
   ],
   providers: [
-    StrategiesService
+    StrategiesService,
+    PlotsService
   ],
   bootstrap: [AppComponent]
 })
