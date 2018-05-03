@@ -2,6 +2,11 @@
 <div id="stoch-chart"></div>
 
 <div>
+  <mat-form-field>
+    <mat-select [(ngModel)]="selectedStrategy">
+      <mat-option *ngFor="let strat of strategies" [value]="strat">{{strat}}</mat-option>
+    </mat-select>
+  </mat-form-field>
   <div class="input-field">
     <input [(ngModel)]="period" name="period" type="number">
     <label for="period">period</label>

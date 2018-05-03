@@ -1,6 +1,8 @@
 import * as _ from 'underscore';
 
-export class StochasticStrategy {
+export class StochasticStrategy implements Strategies.Strategy {
+    public name = 'stochastic';
+
     private isFirstAdvice = false;
     private previousAdvice: Strategies.advice = 'none';
 
@@ -36,5 +38,10 @@ export class StochasticStrategy {
         });
 
         return adviceBatch;
+    }
+
+    public reset(): void {
+        this.isFirstAdvice = false;
+        this.previousAdvice = 'none';
     }
 }

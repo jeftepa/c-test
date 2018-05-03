@@ -1,6 +1,8 @@
 import * as _ from 'underscore';
 
-export class StochasticSegmentsStrategy {
+export class StochasticSegmentsStrategy implements Strategies.Strategy {
+    public name = 'stochastic-segment';
+
     private isFirstAdvice = false;
     private previousAdvice: Strategies.advice = 'none';
     private previousParams: Strategies.IGetTradeAdvice | undefined = undefined;
@@ -41,5 +43,11 @@ export class StochasticSegmentsStrategy {
         });
 
         return adviceBatch;
+    }
+
+    public reset(): void {
+        this.isFirstAdvice = false;
+        this.previousAdvice = 'none';
+        this.previousParams = undefined;
     }
 }

@@ -6,12 +6,10 @@ declare module Strategies {
 
     export type advice = 'buy' | 'sell' | 'none';
 
-    export interface StochasticSegmentsStrategy {
-
-    }
-
     export interface Strategy {
+        name: string;
         getTradeAdvice(params: Strategies.IGetTradeAdvice): Strategies.advice;
         getTradeAdviceBatch(params: Strategies.IGetTradeAdvice[]): Strategies.advice[];
+        reset();
     }
 }

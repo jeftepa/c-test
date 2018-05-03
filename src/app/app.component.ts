@@ -28,8 +28,11 @@ export class AppComponent {
   public symbol = 'EOSETH';
   public period = 12;
   public signalPeriod = 5;
+  public selectedStrategy = 'stochastic';
+  public strategies: string[];
 
   constructor(private strategyService: StrategiesService) {
+    this.strategies = this.strategyService.getStrategies();
     this.strategy = this.strategyService.getStochasticSegmentsStrategy();
 
     // const exchangeInfo = await this.binance.exchangeInfo();
@@ -37,11 +40,19 @@ export class AppComponent {
   }
 
   public async ngOnInit(): Promise<void> {
+    this.strategy.reset();
+
     // this.runLive();
     await this.runHistoricAnalysis(this.symbol, '1m', 100);
   }
 
   public async onRefresh(): Promise<void> {
+    if (this.selectedStrategy !== this.strategy.name) {
+      this.strategy = this.strategyService.getStrategy(this.selectedStrategy);
+    }
+
+    this.strategy.reset();
+
     // this.webSocket();
     // this.runLive();
     await this.runHistoricAnalysis(this.symbol, '1m', 100);
