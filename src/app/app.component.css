@@ -1,7 +1,3 @@
-.input-field {
-  padding-bottom: 5px;
-}
-
-#candle-chart, #stoch-chart {
-  height: 350px;
+nav {
+  text-align: center;
 }

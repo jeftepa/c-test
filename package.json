@@ -23,7 +23,7 @@
     "@angular/material": "^5.2.5",
     "@angular/platform-browser": "^5.2.0",
     "@angular/platform-browser-dynamic": "^5.2.0",
-    "@angular/router": "^5.2.0",
+    "@angular/router": "^5.2.10",
     "@types/plotly.js": "^1.36.0",
     "@types/underscore": "^1.8.8",
     "binance-api-node": "^0.7.6",
