@@ -16,6 +16,7 @@ import { LiveComponent } from './pages/live/live.component';
 import { StrategiesService } from './strategies/strategies.service';
 import { PlotsService } from './plots/plots.service';
 import { UtilsService } from './utils/utils.service';
+import { TradingService } from './trading/trading.service';
 
 const appRoutes: Routes = [
   { path: 'historical', component: HistoricalComponent },
@@ -46,7 +47,8 @@ const appRoutes: Routes = [
   providers: [
     StrategiesService,
     PlotsService,
-    UtilsService
+    UtilsService,
+    TradingService
   ],
   bootstrap: [AppComponent]
 })

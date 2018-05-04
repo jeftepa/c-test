@@ -6,6 +6,7 @@ import * as _ from 'underscore';
 import { StochasticStrategy } from '../../strategies/stochastic-strategy.controller';
 import { PlotsService } from '../../plots/plots.service';
 import { UtilsService } from '../../utils/utils.service';
+import { TradingService } from '../../trading/trading.service';
 
 interface IMyCandle {
   low: string;
@@ -25,6 +26,7 @@ export class HistoricalComponent {
   private binance = Binance();
   private candles: IMyCandle[] = [];
   private webSocket: Function;
+  private symbols: string[];
 
   private _selectedSymbol = 'EOSETH';
 
@@ -40,7 +42,6 @@ export class HistoricalComponent {
     });
   }
 
-  private symbols: string[];
   public filteredSymbols: string[];
   public period = 12;
   public signalPeriod = 5;
@@ -49,7 +50,8 @@ export class HistoricalComponent {
 
   constructor(private strategyService: StrategiesService,
               private plotsService: PlotsService,
-              private utilsService: UtilsService) {
+              private utilsService: UtilsService,
+              private tradingService: TradingService) {
     this.strategies = this.strategyService.getStrategies();
     this.strategy = this.strategyService.getStrategy(this.selectedStrategy);
   }
@@ -95,16 +97,24 @@ export class HistoricalComponent {
 
     const params: Strategies.IGetTradeAdvice[] = this.utilsService.unPluck([k, d], ['k', 'd']);
     const adviceBatch = this.strategy.getTradeAdviceBatch(params);
-    this.setAdvice(adviceBatch, close);
+    this.setAdviceBatch(adviceBatch, close);
 
     const buy = this.utilsService.fillArray<number>(_.pluck(this.candles, 'buy'), this.candles.length);
     const sell = this.utilsService.fillArray<number>(_.pluck(this.candles, 'sell'), this.candles.length);
+
+    this.tradingService.reset();
+    this.tradingService.balance1 = 100;
+    this.tradingService.doTradeBatch(adviceBatch, close);
+
+    console.log('balance 1: ', this.tradingService.balance1);
+    console.log('balance 2: ', this.tradingService.balance2);
+    console.log('total balance: ', (this.tradingService.balance1 + (this.tradingService.balance2 / close[close.length - 1])));
 
     this.plotsService.plotCandleChart(low, high, close, range, buy, sell);
     this.plotsService.plotStochChart(k, d, range);
   }
 
-  private setAdvice(adviceBatch: Strategies.advice[], close: number[]): void {
+  private setAdviceBatch(adviceBatch: Strategies.advice[], close: number[]): void {
     _.each(adviceBatch, (advice, i) => {
       this.candles[i].buy = advice === 'buy' ? close[i] : undefined;
       this.candles[i].sell = advice === 'sell' ? close[i] : undefined;
