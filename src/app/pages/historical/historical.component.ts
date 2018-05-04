@@ -26,7 +26,22 @@ export class HistoricalComponent {
   private candles: IMyCandle[] = [];
   private webSocket: Function;
 
-  public symbol = 'EOSETH';
+  private _selectedSymbol = 'EOSETH';
+
+  get selectedSymbol(): string {
+    return this._selectedSymbol;
+  }
+
+  set selectedSymbol(input: string) {
+    this._selectedSymbol = input.toUpperCase();
+
+    this.filteredSymbols = _.filter(this.symbols, (symbol) => {
+      return symbol.indexOf(this._selectedSymbol) > -1;
+    });
+  }
+
+  private symbols: string[];
+  public filteredSymbols: string[];
   public period = 12;
   public signalPeriod = 5;
   public selectedStrategy = 'stochastic-segments';
@@ -40,19 +55,24 @@ export class HistoricalComponent {
   }
 
   public async ngOnInit(): Promise<void> {
-    this.strategy.reset();
-
-    await this.runHistoricAnalysis(this.symbol, '1m', 100);
+    const exchangeInfo = await this.binance.exchangeInfo();
+    this.symbols = _.pluck(exchangeInfo.symbols, 'symbol');
+    this.filteredSymbols = this.symbols;
   }
 
   public async onRefresh(): Promise<void> {
+    if (!_.contains(this.symbols, this.selectedSymbol)) {
+      console.warn('Invalid symbol, please select a valid symbol.');
+      return;
+    }
+
     if (this.selectedStrategy !== this.strategy.name) {
       this.strategy = this.strategyService.getStrategy(this.selectedStrategy);
     }
 
     this.strategy.reset();
 
-    await this.runHistoricAnalysis(this.symbol, '1m', 100);
+    await this.runHistoricAnalysis(this.selectedSymbol, '1m', 100);
   }
   
   private async runHistoricAnalysis(symbol: string, interval: CandleChartInterval, limit: number): Promise<void> {

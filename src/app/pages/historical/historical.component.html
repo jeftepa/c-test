@@ -3,9 +3,18 @@
     <div>
       <mat-form-field>
         <mat-select [(ngModel)]="selectedStrategy">
-          <mat-option *ngFor="let strat of strategies" [value]="strat">{{strat}}</mat-option>
+          <mat-option *ngFor="let strategy of strategies" [value]="strategy">{{strategy}}</mat-option>
         </mat-select>
       </mat-form-field>
+      <div class="input-field">
+        <input type="text" placeholder="Select symbol" name="symbol" [(ngModel)]="selectedSymbol" [matAutocomplete]="auto">
+        <label for="symbol">symbol</label>
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option *ngFor="let symbol of filteredSymbols" [value]="symbol" >
+            {{ symbol }}
+          </mat-option>
+        </mat-autocomplete>
+      </div>
       <div class="input-field">
         <input [(ngModel)]="period" name="period" type="number">
         <label for="period">period</label>
@@ -13,10 +22,6 @@
       <div class="input-field">
         <input [(ngModel)]="signalPeriod" name="signalPeriod" type="number">
         <label for="signalPeriod">signalPeriod</label>
-      </div>
-      <div class="input-field">
-        <input [(ngModel)]="symbol" name="symbol" type="text">
-        <label for="symbol">symbol</label>
       </div>
       <div class="input-field">
         <button  mat-raised-button color="primary" (click)="onRefresh()">Refresh</button>

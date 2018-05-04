@@ -2,9 +2,22 @@
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
 
 .input-field {
-    padding-bottom: 5px;
+    padding-bottom: 10px;
+}
+
+.input-field > input {
+    width: 83px;
 }
 
 #candle-chart, #stoch-chart {
     height: 350px;
+}
+
+mat-form-field {
+    display: block !important;
+    width: 200px;
+}
+
+.mat-option {
+    font-size: 15px !important;
 }
