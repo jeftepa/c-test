@@ -35,7 +35,7 @@ const appRoutes: Routes = [
     BrowserModule,
     RouterModule.forRoot(
       appRoutes,
-      { enableTracing: true } // <-- debugging purposes only
+      { enableTracing: false } // <-- true = for debugging purposes only
     ),
     FormsModule,
     MatSelectModule,

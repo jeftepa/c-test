@@ -1,0 +1,23 @@
+#simulation-results {
+    height: 95vh !important;
+    overflow-y: hidden;
+    background-color: lightgray;
+}
+
+#simulation-results > div {
+    padding: 5px 10px;
+    overflow-y: auto;
+}
+
+#simulation-summary {
+    height: 35vh;
+    border-bottom: 7px solid white;
+}
+
+#simulation-output {
+    height: 60vh;
+}
+
+.min-max > input {
+    width: 50px !important;
+}

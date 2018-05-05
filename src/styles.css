@@ -6,7 +6,7 @@
 }
 
 .input-field > input {
-    width: 83px;
+    width: 108px;
 }
 
 #candle-chart, #stoch-chart {
@@ -16,6 +16,10 @@
 mat-form-field {
     display: block !important;
     width: 200px;
+}
+
+mat-form-field ~ mat-form-field {
+    margin-top: -27px;
 }
 
 .mat-option {
