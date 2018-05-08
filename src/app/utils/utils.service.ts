@@ -6,12 +6,12 @@ export class UtilsService {
 
   constructor() { }
 
-  public unPluck(values: number[][], keys: string[]): Strategies.IGetTradeAdvice[] {    
-    const result: Strategies.IGetTradeAdvice[] = [];
+  public unPluck(values: number[][], keys: string[]): Strategies.IAnalysisData[] {    
+    const result: Strategies.IAnalysisData[] = [];
 
     let i = 0;
     while(i < values[0].length) {
-      const test: Strategies.IGetTradeAdvice = {};
+      const test: Strategies.IAnalysisData = {};
 
       let j = 0;
       while(j < values.length) {

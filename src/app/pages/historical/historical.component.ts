@@ -27,13 +27,10 @@ export class HistoricalComponent {
   private candles: IMyCandle[] = [];
   private webSocket: Function;
   private symbols: string[];
-
   private _selectedSymbol = 'EOSETH';
-
   get selectedSymbol(): string {
     return this._selectedSymbol;
   }
-
   set selectedSymbol(input: string) {
     this._selectedSymbol = input.toUpperCase();
 
@@ -43,10 +40,13 @@ export class HistoricalComponent {
   }
 
   public filteredSymbols: string[];
-  public period = 12;
-  public signalPeriod = 5;
   public selectedStrategy = 'stochastic-segments';
   public strategies: string[];
+  public selectedInterval: CandleChartInterval = '1m';
+  public intervals: string[] = ['1m', '3m', '5m', '15m', '30m', '1h' , '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'];
+  public selectedLimit = 300;
+  public parameters: Strategies.IHashGraph<Strategies.ISimulationParams>;
+  public paramKeys: string[];
 
   constructor(private strategyService: StrategiesService,
               private plotsService: PlotsService,
@@ -54,6 +54,8 @@ export class HistoricalComponent {
               private tradingService: TradingService) {
     this.strategies = this.strategyService.getStrategies();
     this.strategy = this.strategyService.getStrategy(this.selectedStrategy);
+    this.parameters = this.strategy.getParameters();
+    this.paramKeys = this.strategy.getParamKeys();
   }
 
   public async ngOnInit(): Promise<void> {
@@ -74,7 +76,7 @@ export class HistoricalComponent {
 
     this.strategy.reset();
 
-    await this.runHistoricAnalysis(this.selectedSymbol, '1m', 100);
+    await this.runHistoricAnalysis(this.selectedSymbol, this.selectedInterval, this.selectedLimit);
   }
   
   private async runHistoricAnalysis(symbol: string, interval: CandleChartInterval, limit: number): Promise<void> {
@@ -84,19 +86,9 @@ export class HistoricalComponent {
     const close: number[] = _.pluck(this.candles, 'close');
     const range = _.range(low.length);
 
-    const stoch = stochastic({
-      low: low,
-      high: high,
-      close: close,
-      period: this.period,
-      signalPeriod: this.signalPeriod
-    });
+    const analysisData = this.strategy.getAnalysisData(low, high, close, this.parameters);
 
-    const k = this.utilsService.fillArray<number>(_.pluck(stoch, 'k'), low.length);
-    const d = this.utilsService.fillArray<number>(_.pluck(stoch, 'd'), low.length);
-
-    const params: Strategies.IGetTradeAdvice[] = this.utilsService.unPluck([k, d], ['k', 'd']);
-    const adviceBatch = this.strategy.getTradeAdviceBatch(params);
+    const adviceBatch = this.strategy.getTradeAdviceBatch(analysisData);
     this.setAdviceBatch(adviceBatch, close);
 
     const buy = this.utilsService.fillArray<number>(_.pluck(this.candles, 'buy'), this.candles.length);
@@ -111,7 +103,7 @@ export class HistoricalComponent {
     console.log('total balance: ', (this.tradingService.balance1 + (this.tradingService.balance2 / close[close.length - 1])));
 
     this.plotsService.plotCandleChart(low, high, close, range, buy, sell);
-    this.plotsService.plotStochChart(k, d, range);
+    this.plotsService.plotStochChart(analysisData, range);
   }
 
   private setAdviceBatch(adviceBatch: Strategies.advice[], close: number[]): void {

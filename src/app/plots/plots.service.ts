@@ -1,12 +1,17 @@
 import { Injectable } from '@angular/core';
 import * as Plotly from 'plotly.js';
+import { UtilsService } from '../utils/utils.service';
+import * as _ from 'underscore';
 
 @Injectable()
 export class PlotsService {
 
-  constructor() { }
+  constructor(private utilsService: UtilsService) { }
 
-  public plotStochChart(k: number[], d: number[], range: number[]): void {
+  public plotStochChart(params: Strategies.IAnalysisData[], range: number[]): void {
+    const k = this.utilsService.fillArray<number>(_.pluck(params, 'k'), range.length);
+    const d = this.utilsService.fillArray<number>(_.pluck(params, 'd'), range.length);
+
     const kTrace = {
       x: range,
       y: k,

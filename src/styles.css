@@ -15,7 +15,7 @@
 
 mat-form-field {
     display: block !important;
-    width: 200px;
+    width: 98%;
 }
 
 mat-form-field ~ mat-form-field {
@@ -24,4 +24,19 @@ mat-form-field ~ mat-form-field {
 
 .mat-option {
     font-size: 15px !important;
+}
+
+.title {
+    font-weight: bold;
+    padding-left: 7px;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+label {
+    padding-right: 5px;
+}
+
+button {
+    top: 10px;
 }

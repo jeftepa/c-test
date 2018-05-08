@@ -94,7 +94,7 @@ export class LiveComponent {
     const k = this.utilsService.fillArray<number>(_.pluck(stoch, 'k'), this.candles.length);
     const d = this.utilsService.fillArray<number>(_.pluck(stoch, 'd'), this.candles.length);
 
-    const params: Strategies.IGetTradeAdvice = {
+    const params: Strategies.IAnalysisData = {
       k: k[k.length - 1],
       d: d[d.length - 1]
     }
@@ -112,6 +112,6 @@ export class LiveComponent {
     const sell = this.utilsService.fillArray<number>(_.pluck(this.candles, 'sell'), this.candles.length);
 
     this.plotsService.plotCandleChart(low, high, close, range, buy, sell);
-    this.plotsService.plotStochChart(k, d, range);
+    // this.plotsService.plotStochChart(k, d, range);
   }
 }

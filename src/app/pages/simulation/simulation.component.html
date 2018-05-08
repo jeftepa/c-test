@@ -24,6 +24,13 @@
         </mat-autocomplete>
       </div>
 
+      <div class="input-field">
+        <input [(ngModel)]="selectedLimit" name="limit" type="number" max=1000 min=1>
+        <label for="limit">limit</label>
+      </div>
+
+      <div class="title">Parameters</div>
+
       <div class="input-field min-max" *ngFor="let key of paramKeys">
         <input [(ngModel)]="parameters[key].min" name="parameters[key].name" type="number">
         <input [(ngModel)]="parameters[key].max" name="parameters[key].name" type="number">
