@@ -3,10 +3,11 @@ import { StrategiesService } from '../../strategies/strategies.service';
 import { stochastic } from 'technicalindicators';
 import Binance, { CandlesOptions, CandleChartInterval, Candle, CandleChartResult } from 'binance-api-node';
 import * as _ from 'underscore';
-import { StochasticStrategy } from '../../strategies/stochastic-strategy.controller';
+// import { StochasticStrategy } from '../../strategies/stochastic-strategy.controller';
 import { PlotsService } from '../../plots/plots.service';
 import { UtilsService } from '../../utils/utils.service';
 import { TradingService } from '../../trading/trading.service';
+import { Strategies } from '../../strategies/strategies';
 
 interface IMyCandle {
   low: string;
@@ -45,8 +46,8 @@ export class HistoricalComponent {
   public selectedInterval: CandleChartInterval = '1m';
   public intervals: string[] = ['1m', '3m', '5m', '15m', '30m', '1h' , '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'];
   public selectedLimit = 300;
-  public parameters: Strategies.IHashGraph<Strategies.ISimulationParams>;
-  public paramKeys: string[];
+  public parameters: Strategies.IHashGraph<Strategies.IInputParams>;
+  public paramKeys: Strategies.IHashGraphParams<string[]>;
 
   constructor(private strategyService: StrategiesService,
               private plotsService: PlotsService,

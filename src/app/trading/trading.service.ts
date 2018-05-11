@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'underscore';
+import { Strategies } from '../strategies/strategies';
 
 @Injectable()
 export class TradingService {

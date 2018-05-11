@@ -3,9 +3,10 @@ import { StrategiesService } from '../../strategies/strategies.service';
 import { stochastic } from 'technicalindicators';
 import Binance, { CandlesOptions, CandleChartInterval, Candle, CandleChartResult } from 'binance-api-node';
 import * as _ from 'underscore';
-import { StochasticStrategy } from '../../strategies/stochastic-strategy.controller';
+// import { StochasticStrategy } from '../../strategies/stochastic-strategy.controller';
 import { PlotsService } from '../../plots/plots.service';
 import { UtilsService } from '../../utils/utils.service';
+import { Strategies } from '../../strategies/strategies';
 
 interface IMyCandle {
   low: string;
@@ -95,8 +96,8 @@ export class LiveComponent {
     const d = this.utilsService.fillArray<number>(_.pluck(stoch, 'd'), this.candles.length);
 
     const params: Strategies.IAnalysisData = {
-      k: k[k.length - 1],
-      d: d[d.length - 1]
+      // k: k[k.length - 1],
+      // D: d[d.length - 1]
     }
 
     const advice = this.strategy.getTradeAdvice(params);

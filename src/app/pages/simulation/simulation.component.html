@@ -31,14 +31,23 @@
 
       <div class="title">Parameters</div>
 
-      <div class="input-field min-max" *ngFor="let key of paramKeys">
-        <input [(ngModel)]="parameters[key].min" name="parameters[key].name" type="number">
-        <input [(ngModel)]="parameters[key].max" name="parameters[key].name" type="number">
-        <label for="parameters[key].name">{{parameters[key].name}}</label>
+      <div *ngIf="stratKeys">
+        <div *ngFor="let strat of stratKeys">
+          <label for="strat">{{strat}}</label>
+          <div class="input-field min-max" *ngFor="let key of paramKeys[strat]" name="strat">
+            <input [(ngModel)]="parameters[strat][key].min" name="parameters[strat][key].name" type="number">
+            <input [(ngModel)]="parameters[strat][key].max" name="parameters[strat][key].name" type="number">
+            <label for="parameters[strat][key].name">{{parameters[strat][key].name}}</label>
+          </div>
+        </div>
       </div>
 
       <div class="input-field">
-        <button  mat-raised-button color="primary" (click)="onRefresh()">Refresh</button>
+        <button mat-raised-button color="primary" disabled="{{isSimulationRunning}}" (click)="onRun()">Run</button>
+      </div>
+
+      <div class="input-field">
+        <button mat-raised-button color="primary" disabled="{{!isSimulationRunning}}" (click)="onCancelSimulation()">Cancel</button>
       </div>
 
     </div>          

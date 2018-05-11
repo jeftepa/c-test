@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'underscore';
+import { Strategies } from '../strategies/strategies';
 
 @Injectable()
 export class UtilsService {
@@ -26,8 +27,8 @@ export class UtilsService {
     return result;
   }
 
-  public fillArray<T>(original: T[], requiredLength): T[] {
-    const newData: T[] = _.range(requiredLength).map(() => undefined);
+  public fillArray<T>(original: T[], requiredLength, filler?: any): T[] {
+    const newData: T[] = _.range(requiredLength).map(() => filler);
     const shiftData = requiredLength > original.length ? requiredLength - original.length : 0;
 
     _.each(original, (value, key) => {

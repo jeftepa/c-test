@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as Plotly from 'plotly.js';
 import { UtilsService } from '../utils/utils.service';
 import * as _ from 'underscore';
+import { Strategies } from '../strategies/strategies';
 
 @Injectable()
 export class PlotsService {

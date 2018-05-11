@@ -1,25 +1,32 @@
 import { Injectable } from '@angular/core';
-import { StochasticStrategy } from './stochastic-strategy.controller';
+// import { StochasticStrategy } from './stochastic-strategy.controller';
 import { StochasticSegmentsStrategy } from './stochastic-segments-strategy.controller';
-
+import { Strategies } from '../strategies/strategies';
+import { UtilsService } from '../utils/utils.service';
+import { StochasticBollingerStrategy } from './stochastic-bollinger-strategy.controller';
 
 @Injectable()
 export class StrategiesService {
 
-  constructor() { }
+  constructor(private utilsService: UtilsService) { }
 
   public getStochasticStrategy(): Strategies.Strategy {
-    return new StochasticStrategy;
+    return new StochasticSegmentsStrategy(this.utilsService); //StochasticStrategy;
   }
 
   public getStochasticSegmentsStrategy(): Strategies.Strategy {
-    return new StochasticSegmentsStrategy;
+    return new StochasticSegmentsStrategy(this.utilsService);
+  }
+
+  public getStochasticBollingerStrategy(): Strategies.Strategy {
+    return new StochasticBollingerStrategy(this.utilsService);
   }
 
   public getStrategies(): string[] {
     return [
       'stochastic',
-      'stochastic-segments'
+      'stochastic-segments',
+      'stochastic-bollinger'
     ];
   }
 
@@ -30,6 +37,10 @@ export class StrategiesService {
 
     if (name === 'stochastic-segments') {
       return this.getStochasticSegmentsStrategy();
+    }
+
+    if (name === 'stochastic-bollinger') {
+      return this.getStochasticBollingerStrategy();
     }
 
     throw Error;
