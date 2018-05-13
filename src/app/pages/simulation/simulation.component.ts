@@ -131,24 +131,21 @@ export class SimulationComponent {
     while(this.run <= this.totalRuns && !this.cancelSimulation) {
       await this.wait(0);
 
-      this.addSimulationOutput('run: ' + this.run, this.run === 1 ? 0 : 3);
-      this.addSimulationOutput('** period **: ' + this.parameters['stochastic']['period'].current, 1);
-      this.addSimulationOutput('** signalPeriod **: ' + this.parameters['stochastic']['signalPeriod'].current, 1);
-
+      this.outputTextField();
       this.strategy.reset();
       this.runAnalysis();
 
       loop1:
       for (let i = this.stratKeys.length - 1; i > -1; i--) {
         const strat = this.stratKeys[i];
-        const paramKeys = Object.keys(this.parameters[strat]); // strategy params
+        const params = this.paramKeys[strat];
 
-        for (let j = paramKeys.length - 1; j > -1; j--) {
-          if (this.parameters[strat][paramKeys[j]].current < this.parameters[strat][paramKeys[j]].max) {
-            this.parameters[strat][paramKeys[j]].current++;
+        for (let j = params.length - 1; j > -1; j--) {
+          if (this.parameters[strat][params[j]].current < this.parameters[strat][params[j]].max) {
+            this.parameters[strat][params[j]].current++;
             break loop1;
           } else {
-            this.parameters[strat][paramKeys[j]].current = this.parameters[strat][paramKeys[j]].min;
+            this.parameters[strat][params[j]].current = this.parameters[strat][params[j]].min;
           }
         } 
       }
@@ -169,13 +166,12 @@ export class SimulationComponent {
   }
 
   private runAnalysis(): void {
-    const high: number[] = _.pluck(this.candles, 'high');
-    const low: number[] = _.pluck(this.candles, 'low');
-    const close: number[] = _.pluck(this.candles, 'close');
+    const high: number[] = _.chain(this.candles).pluck('high').map((value) => { return Number(value);}).value();
+    const low: number[] = _.chain(this.candles).pluck('low').map((value) => { return Number(value);}).value();
+    const close: number[] = _.chain(this.candles).pluck('close').map((value) => { return Number(value);}).value();
     const range = _.range(low.length);
-
+ 
     const analysisData = this.strategy.getAnalysisData(low, high, close, this.parameters);
-
     const adviceBatch = this.strategy.getTradeAdviceBatch(analysisData);
     this.setAdvice(adviceBatch, close);
 
@@ -183,10 +179,9 @@ export class SimulationComponent {
     this.tradingService.balance1 = 100;
     this.tradingService.doTradeBatch(adviceBatch, close);
 
-    this.addSimulationOutput('balance 1: ' + this.tradingService.balance1, 2);
-    this.addSimulationOutput('balance 2: ' + this.tradingService.balance2, 1);
     const totalBalance = (this.tradingService.balance1 + (this.tradingService.balance2 / close[close.length - 1]));
-    this.addSimulationOutput('total balance: ' + totalBalance, 1);
+    
+    this.analysisOutputTextField(totalBalance);
     
     if (this.topBalance.totalBalance < totalBalance) {
       this.topBalance = {
@@ -239,27 +234,45 @@ export class SimulationComponent {
     this.stratKeys = Object.keys(this.paramKeys);
   }
 
+  private analysisOutputTextField(totalBalance: number): void {
+    this.addSimulationOutput('balance 1: ' + this.tradingService.balance1, 2);
+    this.addSimulationOutput('balance 2: ' + this.tradingService.balance2, 1);
+    this.addSimulationOutput('total balance: ' + totalBalance, 1);
+  }
+
+  private outputTextField(): void {
+    this.addSimulationOutput(`<b>run: ${this.run}</b>`, this.run === 1 ? 0 : 2);
+    _.each(this.stratKeys, (strategy) => {
+      _.each(this.paramKeys[strategy], (param) => {
+        this.addSimulationOutput(`${strategy} - ${param}: ${this.parameters[strategy][param].current}`, 1);
+      });
+    });
+  }
+
   private initSummaryTextField(): void {
     this.addSimulationSummary('strategy: ' + this._selectedStrategy, 0);
     this.addSimulationSummary('interval: ' + this.selectedInterval, 1);
     this.addSimulationSummary('symbol: ' + this.selectedSymbol, 1);
     this.addSimulationSummary('limit: ' + this.selectedLimit, 1);
-
-    this.addSimulationSummary('period: ' + this.parameters['stochastic']['period'].min + ' - ' + this.parameters['stochastic']['period'].max, 2);
-    this.addSimulationSummary('signalPeriod: ' + this.parameters['stochastic']['signalPeriod'].min + ' - ' + this.parameters['stochastic']['signalPeriod'].max, 1);
+    _.each(this.stratKeys, (strategy) => {
+      this.addSimulationSummary(`<b>&nbsp&nbsp&nbsp${strategy}</b>`, 2);
+      _.each(this.paramKeys[strategy], (param) => {
+        this.addSimulationSummary(`${param}: ${this.parameters[strategy][param].min} - ${this.parameters[strategy][param].max}`, 1);
+      });
+    });
   }
 
   private endSummaryTextField(): void {
-    this.addSimulationSummary('Results =>', 3);
-    this.addSimulationSummary('', 1);
-    _.each(this.topBalance.params, (strat) => {
-      _.each(strat, (param) => {
-        this.addSimulationSummary(param.name + ': ' + param.current, 1);
-      });
-    });
-
+    this.addSimulationSummary('<b>----------------------------------</b>' , 2);
+    this.addSimulationSummary('<b><u>Results</u></b>', 2);
     this.addSimulationSummary('balance1: ' + this.topBalance.balance1, 2);
     this.addSimulationSummary('balance2: ' + this.topBalance.balance2, 1);
     this.addSimulationSummary('totalBalance: ' + this.topBalance.totalBalance, 1);
+    _.each(this.stratKeys, (strategy) => {
+      this.addSimulationSummary(`<b>&nbsp&nbsp&nbsp${strategy}</b>`, 2);
+      _.each(this.paramKeys[strategy], (param) => {
+        this.addSimulationSummary(`${param}: ${this.topBalance.params[strategy][param].current}`, 1);
+      });
+    });
   }
 }

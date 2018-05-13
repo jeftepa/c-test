@@ -3,11 +3,11 @@ import { StrategiesService } from '../../strategies/strategies.service';
 import { stochastic } from 'technicalindicators';
 import Binance, { CandlesOptions, CandleChartInterval, Candle, CandleChartResult } from 'binance-api-node';
 import * as _ from 'underscore';
-// import { StochasticStrategy } from '../../strategies/stochastic-strategy.controller';
 import { PlotsService } from '../../plots/plots.service';
 import { UtilsService } from '../../utils/utils.service';
 import { TradingService } from '../../trading/trading.service';
 import { Strategies } from '../../strategies/strategies';
+import { Plots } from '../../plots/plots';
 
 interface IMyCandle {
   low: string;
@@ -41,12 +41,22 @@ export class HistoricalComponent {
   }
 
   public filteredSymbols: string[];
-  public selectedStrategy = 'stochastic-segments';
+  private _selectedStrategy = 'stochastic-bollinger';
+  get selectedStrategy(): string {
+    return this._selectedStrategy;
+  }
+  set selectedStrategy(input: string) {
+    if (this._selectedStrategy !== input) {
+      this._selectedStrategy = input;
+      this.loadStrategy();
+    }
+  }
   public strategies: string[];
   public selectedInterval: CandleChartInterval = '1m';
   public intervals: string[] = ['1m', '3m', '5m', '15m', '30m', '1h' , '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'];
   public selectedLimit = 300;
   public parameters: Strategies.IHashGraph<Strategies.IInputParams>;
+  public stratKeys: string[];
   public paramKeys: Strategies.IHashGraphParams<string[]>;
 
   constructor(private strategyService: StrategiesService,
@@ -54,9 +64,7 @@ export class HistoricalComponent {
               private utilsService: UtilsService,
               private tradingService: TradingService) {
     this.strategies = this.strategyService.getStrategies();
-    this.strategy = this.strategyService.getStrategy(this.selectedStrategy);
-    this.parameters = this.strategy.getParameters();
-    this.paramKeys = this.strategy.getParamKeys();
+    this.loadStrategy();
   }
 
   public async ngOnInit(): Promise<void> {
@@ -82,9 +90,9 @@ export class HistoricalComponent {
   
   private async runHistoricAnalysis(symbol: string, interval: CandleChartInterval, limit: number): Promise<void> {
     this.candles = await this.binance.candles({ symbol: symbol, interval: interval, limit: limit });
-    const high: number[] = _.pluck(this.candles, 'high');
-    const low: number[] = _.pluck(this.candles, 'low');
-    const close: number[] = _.pluck(this.candles, 'close');
+    const high: number[] = _.chain(this.candles).pluck('high').map((value) => { return Number(value);}).value();
+    const low: number[] = _.chain(this.candles).pluck('low').map((value) => { return Number(value);}).value();
+    const close: number[] = _.chain(this.candles).pluck('close').map((value) => { return Number(value);}).value();
     const range = _.range(low.length);
 
     const analysisData = this.strategy.getAnalysisData(low, high, close, this.parameters);
@@ -103,8 +111,17 @@ export class HistoricalComponent {
     console.log('balance 2: ', this.tradingService.balance2);
     console.log('total balance: ', (this.tradingService.balance1 + (this.tradingService.balance2 / close[close.length - 1])));
 
-    this.plotsService.plotCandleChart(low, high, close, range, buy, sell);
-    this.plotsService.plotStochChart(analysisData, range);
+    const plotData: Plots.IPlotData = { low, high, close, range, buy, sell };
+    this.plotsService.plotCandleChart(plotData);
+    this.plotsService.plotParamsChart(this.stratKeys[0], analysisData, plotData);
+    this.plotsService.plotParamsChart(this.stratKeys[1], analysisData, plotData)
+  }
+
+  private loadStrategy() {
+    this.strategy = this.strategyService.getStrategy(this._selectedStrategy);
+    this.parameters = this.strategy.getParameters();
+    this.paramKeys = this.strategy.getParamKeys();
+    this.stratKeys = Object.keys(this.paramKeys);
   }
 
   private setAdviceBatch(adviceBatch: Strategies.advice[], close: number[]): void {

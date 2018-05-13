@@ -18,11 +18,13 @@ export class StochasticBollingerStrategy implements Strategies.Strategy {
     public getTradeAdvice(params: Strategies.IAnalysisData): Strategies.advice {
         let advice: Strategies.advice;
 
-        if (params.stochastic.k > params.stochastic.d && params.stochastic.k >= 20 && this.previousParams !== undefined && this.previousParams.stochastic.k <= 20) {
+        if (params.stochastic.k > params.stochastic.d && params.stochastic.k >= 20 && this.previousParams !== undefined && this.previousParams.stochastic.k <= 20
+                && params.bollingerbands.pb <= 0.2) {
             advice = this.previousAdvice !== 'buy' ? 'buy' : 'none';
             // advice = 'buy';
             this.previousAdvice = 'buy';
-        } else if (params.stochastic.k < params.stochastic.d && params.stochastic.k <= 80 && this.previousParams !== undefined && this.previousParams.stochastic.k >= 80) {
+        } else if (params.stochastic.k < params.stochastic.d && params.stochastic.k <= 80 && this.previousParams !== undefined && this.previousParams.stochastic.k >= 80
+                && params.bollingerbands.pb >= 0.8) {
             advice = this.previousAdvice !== 'sell' ? 'sell' : 'none';
             // advice = 'sell';
             this.previousAdvice = 'sell';

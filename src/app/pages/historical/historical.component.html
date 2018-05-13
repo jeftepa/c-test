@@ -31,9 +31,14 @@
 
       <div class="title">Parameters</div>
 
-      <div class="input-field" *ngFor="let key of paramKeys">
-        <input [(ngModel)]="parameters[key].current" name="parameters[key].name" type="number">
-        <label for="parameters[key].name">{{parameters[key].name}}</label>
+      <div *ngIf="stratKeys">
+        <div *ngFor="let strat of stratKeys">
+          <label for="strat">{{strat}}</label>
+          <div class="input-field min-max" *ngFor="let key of paramKeys[strat]" name="strat">
+            <input [(ngModel)]="parameters[strat][key].current" name="parameters[strat][key].name" type="number">
+            <label for="parameters[strat][key].name">{{parameters[strat][key].name}}</label>
+          </div>
+        </div>
       </div>
 
       <div class="input-field">
@@ -44,7 +49,7 @@
   </mat-sidenav>
   <mat-sidenav-content>
     <div id="candle-chart"></div>
-    <div id="stoch-chart"></div>
+    <div *ngFor="let strat of stratKeys" id="{{strat}}-chart"></div>
   </mat-sidenav-content>
 </mat-sidenav-container>
 
